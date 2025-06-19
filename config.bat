@@ -9,5 +9,8 @@ echo Upgrading pip and installing requirements...
 pip install --upgrade pip
 pip install -r requirements.txt
 
+:: echo Authenticating...
+:: earthengine authenticate
+
 echo Setup complete!
 pause

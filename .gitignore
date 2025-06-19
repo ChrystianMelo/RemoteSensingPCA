@@ -3,10 +3,8 @@ __pycache__/
 /cache/
 
 # Ignore data generated during execution
-# /data/
-
-# Pesa mais que 100mb e é facil de baixar
-data/20250401_atividade_economica.csv 
+# /data
+/data/pca_components
 
 # Ignore virtual environments
 venv/

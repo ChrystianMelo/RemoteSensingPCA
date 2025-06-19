@@ -1,1 +1,6 @@
-pandas
+numpy
+rasterio
+matplotlib
+ee
+earthengine-api
+geemap
