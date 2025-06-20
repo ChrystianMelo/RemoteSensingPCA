@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.cluster import KMeans
 
 def donwloadBands(output_folder):
-    print("Esse metodo precisa ser reescrito.")
+    print("Esse metodo ainda precisa ser escrito e testado corretamente.")
 
 def getBands(output_folder) :
     # Cria e preenche com as bandas se necessario
