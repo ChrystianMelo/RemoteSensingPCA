@@ -4,3 +4,4 @@ matplotlib
 ee
 earthengine-api
 geemap
+scikit-learn

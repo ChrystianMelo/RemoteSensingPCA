@@ -6,21 +6,32 @@ import glob
 import numpy as np
 
 if __name__ == '__main__':
-    bands_folder = "data/bandsLandsat5"
-    bands = gis.getBands(bands_folder)
+    bandsFolder = "data/Landsat Bands"
+    bands = gis.getBands(bandsFolder)
+
+    band_paths = sorted(glob.glob(os.path.join(bandsFolder, '*.tif')))
+    
+    resultsFolder = "data/Results"
+    os.makedirs(resultsFolder, exist_ok=True)
+
+    combinedBands = resultsFolder + "/combinedBands.tif"
+    classifiedCombinedBands = resultsFolder + "/classifiedCombinedBands.tif"
+
+    gis.combine_bands(band_paths, combinedBands)
+    gis.classify_kmeans(combinedBands, n_clusters=6, output_path=classifiedCombinedBands)
 
     X = np.array(bands).T  # (n_pixels, n_bandas)
 
     # Aplica PCA
-    Y_pca, eigvecs, eigvals = pca.simple_pca(X, 6)
+    Y_pca, eigvecs, eigvals = pca.simple_pca(X, len(bands))
 
     # Calcula a variância total
-    Y_selected, num_pcs = pca.get_selected_pcs(Y_pca, eigvals, 0.95, True)
+    Y_selected, num_pcs = pca.get_selected_pcs(Y_pca, eigvals, 0.99, True)
 
     # Garante pasta de saída
-    os.makedirs("data/pca_components", exist_ok=True)
+    pcFolder = "data/PCA Components"
+    os.makedirs(pcFolder, exist_ok=True)
 
-    band_paths = sorted(glob.glob(os.path.join(bands_folder, '*.tif')))
     with rasterio.open(band_paths[0]) as ref:
         height, width = ref.height, ref.width
         profile = ref.profile
@@ -28,7 +39,7 @@ if __name__ == '__main__':
     # Salva cada PC como um .tif separado
     for i in range(num_pcs):
         img = Y_selected[:, i].reshape((height, width)).astype('float32')
-        output_path = f"data/pca_components/pc{i+1}.tif"
+        output_path = pcFolder + f"/pc{i+1}.tif"
 
         profile.update({
             'count': 1,
@@ -39,3 +50,11 @@ if __name__ == '__main__':
             dst.write(img, 1)
 
         print(f"Salvo: {output_path}")
+    
+    combinedPCs = resultsFolder + "/combinedPCs.tif"
+    classifiedCombinedPCs = resultsFolder + "/classifiedCombinedPCs.tif"
+
+    pcPaths = sorted(glob.glob(os.path.join(pcFolder, '*.tif')))
+
+    gis.combine_bands(pcPaths, combinedPCs)
+    gis.classify_kmeans(combinedPCs, n_clusters=6, output_path=classifiedCombinedPCs)
