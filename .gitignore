@@ -4,7 +4,8 @@ __pycache__/
 
 # Ignore data generated during execution
 # /data
-/data/pca_components
+"data\Results"
+"data\PCA Components"
 
 # Ignore virtual environments
 venv/
