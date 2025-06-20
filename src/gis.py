@@ -5,7 +5,62 @@ import rasterio
 import numpy as np
 from sklearn.cluster import KMeans
 
-def donwloadBands(output_folder):
+def downloadBands(output_folder):
+    """
+    Faz o download de bandas espectrais do satélite Landsat 9 (nível 1 - TOA) usando o Google Earth Engine.
+
+    Esta função deve ser implementada para se conectar ao GEE, selecionar a melhor imagem disponível
+    em determinada área de interesse, extrair bandas específicas e exportar as imagens para o Google Drive.
+
+    Detalhes do processo:
+
+    1. **Fonte de Dados**:
+       - Coleção utilizada: `LANDSAT/LC09/C02/T1_TOA` (Top of Atmosphere Reflectance)
+       - Nível: Level 1 (não atmospherically corrected)
+       - Satélite: Landsat 9
+
+    2. **Área de Interesse (AOI)**:
+       - Definida como um retângulo em coordenadas UTM (EPSG:31983 - SIRGAS 2000 Zona 23S).
+       - Representa a região de interesse onde as bandas serão recortadas.
+
+    3. **Filtro Temporal e de Qualidade**:
+       - Período analisado: de `'2022-01-01'` a `'2022-12-31'`
+       - Apenas imagens com `CLOUD_COVER < 10` são consideradas, garantindo baixa nebulosidade.
+
+    4. **Seleção da Imagem**:
+       - A imagem com **menor cobertura de nuvens** é selecionada automaticamente usando `.sort('CLOUD_COVER').first()`.
+
+    5. **Bandas Selecionadas**:
+       - Bandas espectrais de interesse: `B1` a `B9`, **excluindo** `B8` por ser pancromática (opcional incluir).
+       - Resolução nativa: 30 metros (exceto `B8`, que tem 15m e será reamostrada se usada).
+
+    6. **Reprojeção e Recorte**:
+       - Todas as bandas selecionadas são recortadas à área de interesse e reprojetadas para `EPSG:31983` com resolução de 30m.
+
+    7. **Exportação**:
+       - Cada banda é exportada separadamente para o Google Drive.
+       - Os arquivos serão nomeados com o padrão: `'Landsat9_{BANDA}_Ibirite_{DATA}'`
+       - Parâmetros de exportação:
+         - `region`: área recortada (AOI)
+         - `scale`: 30 metros
+         - `crs`: EPSG:31983
+         - `folder`: pasta no Drive chamada `'GEE_Exports'`
+         - `maxPixels`: 1e13 (permite grandes imagens)
+
+    Observações:
+    - Para que o Earth Engine funcione, o usuário deve estar autenticado no ambiente GEE (via browser ou API Python).
+    - Este processo exige que o Earth Engine esteja devidamente configurado no ambiente (API ativa e permissões concedidas).
+    - O processo de exportação para o Drive não é imediato e pode ser monitorado via [GEE Tasks](https://code.earthengine.google.com/tasks).
+    
+    Parâmetros:
+    ----------
+    output_folder : str
+        Caminho ou nome da pasta onde os arquivos serão organizados após exportação via Drive.
+    
+    Retorno:
+    -------
+    Nenhum retorno direto. Os arquivos .tif serão enviados para o Google Drive e podem ser baixados manualmente ou via API.
+    """
     print("Esse metodo ainda precisa ser escrito e testado corretamente.")
 
 def getBands(output_folder) :
