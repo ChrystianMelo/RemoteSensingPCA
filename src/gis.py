@@ -117,7 +117,7 @@ def classify_kmeans(input_multiband_path, n_clusters, output_path):
     data = bands.reshape(bands.shape[0], -1).T
 
     # Aplica KMeans
-    kmeans = KMeans(n_clusters=n_clusters, random_state=0)
+    kmeans = KMeans(n_clusters=n_clusters, random_state=0, n_init=10)
     labels = kmeans.fit_predict(data)
 
     # Reorganiza rótulos no formato original da imagem

@@ -6,29 +6,30 @@ import glob
 import numpy as np
 
 if __name__ == '__main__':
-    bands_folder = "data/bandsLandsat5"
-    bands = gis.getBands(bands_folder)
+    bandsFolder = "data/Landsat Bands"
+    bands = gis.getBands(bandsFolder)
 
-    band_paths = sorted(glob.glob(os.path.join(bands_folder, '*.tif')))
+    band_paths = sorted(glob.glob(os.path.join(bandsFolder, '*.tif')))
     
-    os.makedirs("data/results", exist_ok=True)
+    resultsFolder = "data/Results"
+    os.makedirs(resultsFolder, exist_ok=True)
 
-    combinedBands = "data/results/combinedBands.tif"
-    classifiedCombinedBands = "data/results/classifiedCombinedBands.tif"
+    combinedBands = resultsFolder + "/combinedBands.tif"
+    classifiedCombinedBands = resultsFolder + "/classifiedCombinedBands.tif"
 
     gis.combine_bands(band_paths, combinedBands)
-    gis.classify_kmeans(combinedBands, n_clusters=4, output_path=classifiedCombinedBands)
+    gis.classify_kmeans(combinedBands, n_clusters=6, output_path=classifiedCombinedBands)
 
     X = np.array(bands).T  # (n_pixels, n_bandas)
 
     # Aplica PCA
-    Y_pca, eigvecs, eigvals = pca.simple_pca(X, 6)
+    Y_pca, eigvecs, eigvals = pca.simple_pca(X, len(bands))
 
     # Calcula a variância total
-    Y_selected, num_pcs = pca.get_selected_pcs(Y_pca, eigvals, 0.95, True)
+    Y_selected, num_pcs = pca.get_selected_pcs(Y_pca, eigvals, 0.99, True)
 
     # Garante pasta de saída
-    pcFolder = "data/pca_components"
+    pcFolder = "data/PCA Components"
     os.makedirs(pcFolder, exist_ok=True)
 
     with rasterio.open(band_paths[0]) as ref:
@@ -50,10 +51,10 @@ if __name__ == '__main__':
 
         print(f"Salvo: {output_path}")
     
-    combinedPCs = "data/results/combinedPCs.tif"
-    classifiedCombinedPCs = "data/results/classifiedCombinedPCs.tif"
+    combinedPCs = resultsFolder + "/combinedPCs.tif"
+    classifiedCombinedPCs = resultsFolder + "/classifiedCombinedPCs.tif"
 
     pcPaths = sorted(glob.glob(os.path.join(pcFolder, '*.tif')))
 
     gis.combine_bands(pcPaths, combinedPCs)
-    gis.classify_kmeans(combinedPCs, n_clusters=4, output_path=classifiedCombinedPCs)
+    gis.classify_kmeans(combinedPCs, n_clusters=6, output_path=classifiedCombinedPCs)
