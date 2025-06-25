@@ -63,14 +63,17 @@ def downloadBands(output_folder):
     """
     print("Esse metodo ainda precisa ser escrito e testado corretamente.")
 
-def getBands(output_folder) :
+def getBands(folder) :
+    """
+    Recupera e agrupa as bandas *.tif presente na pasta passada
+    """
     # Cria e preenche com as bandas se necessario
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-        donwloadBands(output_folder)
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+        donwloadBands(folder)
 
     # Encontra todos os arquivos de bandas (B1.tif, B2.tif, ..., B7.tif)
-    band_paths = sorted(glob.glob(os.path.join(output_folder, '*.tif')))
+    band_paths = sorted(glob.glob(os.path.join(folder, '*.tif')))
 
     # Lê e empilha as bandas
     bands = []
