@@ -1,18 +1,53 @@
 import numpy as np
 
-def simple_pca(X, n_components):
-    # Centraliza os dados
-    X_centered = X - np.mean(X, axis=0)
-    # Matriz de covariância
-    cov = np.cov(X_centered, rowvar=False)
-    # Autovalores e autovetores
-    eigvals, eigvecs = np.linalg.eigh(cov)
-    # Ordena em ordem decrescente
-    sorted_idx = np.argsort(eigvals)[::-1]
-    eigvecs = eigvecs[:, sorted_idx[:n_components]]
-    # Projeção
-    X_pca = np.dot(X_centered, eigvecs)
-    return X_pca, eigvecs, eigvals[sorted_idx[:n_components]]
+def pca_svd(X, n_components=None, center=True, scale=False):
+    """
+    PCA via SVD (DVS).
+
+    Parâmetros
+    ----------
+    X : array-like, shape (n_amostras, n_variáveis)
+        Matriz de dados, cada linha é um pixel (ou amostra) e cada coluna uma banda.
+    n_components : int ou None
+        Quantos componentes principais retornar.  None -> todos.
+    center : bool
+        Se True, subtrai a média de cada coluna (passo de centralização).
+    scale : bool
+        Se True, divide pelo desvio-padrão de cada coluna (opcional).
+
+    Retorna
+    -------
+    scores : ndarray (n_amostras, n_components)
+        Dados projetados (Y no tutorial).
+    loadings : ndarray (n_components, n_variáveis)
+        Autovetores (componentes principais, linhas de Vᵀ).
+    eigvals : ndarray (n_components,)
+        Autovalores (variância explicada por componente).
+    """
+    X = np.asarray(X, dtype=float)
+    n, p = X.shape
+    if center:
+        X = X - X.mean(axis=0, keepdims=True)
+    if scale:
+        # Padronização opcional
+        X = X / X.std(axis=0, ddof=1, keepdims=True)
+
+    # ---------- DVS condensada ----------
+    # Pelo Teorema 2 do módulo DVS existe A = U Σ Vᵀ com Σ diag(σ₁ … σ_r) :contentReference[oaicite:0]{index=0}
+    U, s, Vt = np.linalg.svd(X, full_matrices=False)   # U:(n,r)  Σ:diag(s)  Vt:(r,p)
+
+    # Autovalores da matriz de covariância S = (1/(n-1)) Xᵀ X
+    eigvals_full = (s**2) / (n - 1)                    # σᵢ² / (n-1)  (tutorial, pág. “Fase 2”) :contentReference[oaicite:1]{index=1}
+
+    # Seleção do número de componentes
+    if n_components is None or n_components > len(s):
+        n_components = len(s)
+
+    loadings = Vt[:n_components]                      # linhas de Vᵀ = autovetores
+    scores   = X @ loadings.T                        # projeção Y = X P (onde P = V_k)
+
+    eigvals  = eigvals_full[:n_components]
+    return scores, loadings, eigvals
 
 def get_selected_pcs(Y_pca, eigvals, threshold=0.95, verbose=True):
     """

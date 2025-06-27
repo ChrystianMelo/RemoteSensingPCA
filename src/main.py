@@ -24,7 +24,7 @@ if __name__ == '__main__':
     X = np.array(bands).T  # (n_pixels, n_bandas)
 
     # Aplica PCA
-    Y_pca, eigvecs, eigvals = pca.simple_pca(X, len(bands))
+    Y_pca, eigvecs, eigvals = pca.pca_svd(X, len(bands))
 
     # Calcula a variância total
     Y_selected, num_pcs = pca.get_selected_pcs(Y_pca, eigvals, 0.99, True)
