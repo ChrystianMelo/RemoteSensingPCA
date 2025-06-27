@@ -1,7 +1,5 @@
 numpy
 rasterio
-matplotlib
 ee
-earthengine-api
 geemap
 scikit-learn
