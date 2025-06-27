@@ -1,6 +1,22 @@
-# PCA para Análise de Imagens de Satélite
+# PCA via SVD para Realce de Feições em Imagens de Satélite 🚀
 
-Este projeto implementa a Análise de Componentes Principais (PCA) do zero para o realce de feições geográficas em imagens de satélite multiespectrais. A metodologia é fundamentada em conceitos da Álgebra Linear Numérica conforme apresentados no livro *Fundamentals of Matrix Computations* de David S. Watkins.
+Este repositório demonstra **passo‑a‑passo** como aplicamos os conceitos vistos nas aulas de Álgebra Linear Numérica para construir uma pipeline de PCA do **zero**, sem bibliotecas de ML, a fim de realçar vegetação, água e áreas urbanas em cenas Landsat.
+
+---
+
+## 📚 Conexão direta com o conteúdo da disciplina
+
+| Etapa do projeto | Conceito teórico usado | Fonte da aula |
+|------------------|------------------------|---------------|
+| **Centralização** das bandas (X ← X − μ) | Necessidade de dados de média zero antes de calcular covariância | Tutorial *PCA Satelite*, Fase 2‑2 (a) |
+| **Matriz de covariância**  \(S = \frac{1}{N-1} X^{\mathsf T} X\) | Definição de correlação entre variáveis | Tutorial *PCA Satelite*, Fase 2‑2 (b) |
+| **Decomposição em Valores Singulares (DVS)**  \(X = U\,\Sigma\,V^{\mathsf T}\) | Teorema 1: existe a fatoração ortogonal com σ₁ ≥ σ₂ … | Módulo 3 – DVS |
+| Relação **autovalor ↔ valor singular**  \(\lambda_i = \sigma_i^2/(N-1)\) | Derivada de \(X^{\mathsf T} X = V\,\Sigma^2 V^{\mathsf T}\) | Tutorial *PCA Satelite*, Fase 2 |
+| **Componentes principais**  (loadings = linhas de \(V^{\mathsf T}\)) | Bases ortonormais que maximizam variância | Módulo 3 – DVS |
+| **Projeção**  \(Y = X P\) | Mudança de base para reduzir dimensionalidade | Tutorial *PCA Satelite*, Fase 2‑4 |
+| **Variância explicada**  (\(\sum \lambda_i\)) | Análise de contribuição de cada PC | Tutorial *PCA Satelite*, Fase 3‑3 |
+
+---
 
 ## 🎯 Objetivos
 
@@ -18,15 +34,13 @@ A implementação está baseada em conceitos como:
 
 ## 🛰 Dados Utilizados
 
-- Imagens Landsat 8/9 ou Sentinel-2 com baixa cobertura de nuvens.
-- Bandas espectrais utilizadas: visível e infravermelho próximo.
+- Imagens Landsat 9.
+- Bandas espectrais utilizadas: Bandas de 1 a 9 (exceto a 8)
 
 ## 🛠 Tecnologias
 
 - Python 3
-- NumPy
-- Rasterio
-- Matplotlib
+- Google Earth Engine 
 
 ## 📊 Etapas
 
