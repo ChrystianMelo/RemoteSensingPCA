@@ -53,5 +53,5 @@ A implementação está baseada em conceitos como:
 ## 📖 Referências
 
 - Watkins, D. *Fundamentals of Matrix Computations*, Wiley, 3rd Edition.
-- Projeto didático: "PCA Satélite.pdf"
+- [Projeto didático](Tutorial.pdf)
 - Estornell et al., *Principal Component Analysis Applied to Remote Sensing* (2013)
