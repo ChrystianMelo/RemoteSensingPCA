@@ -4,6 +4,12 @@ import glob
 import rasterio
 import numpy as np
 from sklearn.cluster import KMeans
+from scipy.ndimage import generic_filter
+from pathlib import Path
+import rasterio
+from rasterio.mask import mask
+import geopandas as gpd
+
 
 def downloadBands(output_folder):
     """
@@ -102,33 +108,163 @@ def combine_bands(band_paths, output_path):
             with rasterio.open(path) as src:
                 dst.write(src.read(1), i + 1)
 
-def classify_kmeans(input_multiband_path, n_clusters, output_path):
+# === 1. Gerador compatível com java.util.Random ============================
+class JavaRandom:
+    _MULT = 0x5DEECE66D
+    _ADD  = 0xB
+    _MASK = (1 << 48) - 1
+
+    def __init__(self, seed: int):
+        # Mesmo scrambling que o construtor do Java
+        self.seed = (seed ^ self._MULT) & self._MASK
+
+    def _next_bits(self, bits: int) -> int:
+        self.seed = (self.seed * self._MULT + self._ADD) & self._MASK
+        return self.seed >> (48 - bits)
+
+    def next_int(self, bound: int) -> int:
+        if bound <= 0:
+            raise ValueError("bound must be positive")
+        if (bound & (bound - 1)) == 0:                 # potência de 2
+            return (bound * self._next_bits(31)) >> 31
+        while True:
+            bits = self._next_bits(31)
+            val  = bits % bound
+            if bits - val + (bound - 1) >= 0:
+                return val
+
+# === 2. K-Means exatamente como no SNAP ===================================
+def _snap_like_kmeans(X, n_clusters=6, max_iter=30, seed=31415, tol=1e-6, sample_size=50_000):
     """
-    Executa classificação KMeans em um raster multibanda.
-    
-    Parameters:
-        input_multiband_path (str): Caminho do arquivo tif multibanda.
-        n_clusters (int): Número de clusters para o KMeans.
-        output_path (str): Caminho para salvar o resultado da classificação.
+    Implementa o K-Means do SNAP.
+    Parâmetros
+    ----------
+    X : ndarray (n amostras, n_bandas)
+        Pixels válidos já vetorizados.
+    n_clusters : int
+    max_iter : int
+    seed : int
+    tol : float
+        Limite absoluto para considerar que os centróides não mudaram.
+    Retorno
+    -------
+    labels_sorted : ndarray (n amostras,)
+        Índices de classe já reordenados pelo tamanho do cluster.
     """
-    with rasterio.open(input_multiband_path) as src:
-        bands = src.read()  # shape: (n_bands, height, width)
-        profile = src.profile
-        height, width = src.height, src.width
+    rnd = np.random.RandomState(seed)
 
-    # Reorganiza os dados para shape: (n_pixels, n_bands)
-    data = bands.reshape(bands.shape[0], -1).T
+    # (A) -------- PADRONIZAÇÃO (z-score) ----------
+    X_std = (X - X.mean(axis=0)) / X.std(axis=0)
 
-    # Aplica KMeans
-    kmeans = KMeans(n_clusters=n_clusters, random_state=0, n_init=10)
-    labels = kmeans.fit_predict(data)
+    # (B) --------- AMOSTRAGEM p/ treinamento ------
+    if X_std.shape[0] > sample_size:
+        idx_sample = rnd.choice(X_std.shape[0], sample_size, replace=False)
+        X_train = X_std[idx_sample]
+    else:
+        X_train = X_std
 
-    # Reorganiza rótulos no formato original da imagem
-    classified = labels.reshape((height, width)).astype(np.uint8)
+    # (C) --------- K-means sobre o ‘treino’ --------
+    centroids = X_train[rnd.choice(X_train.shape[0], n_clusters, replace=False)]
+    for _ in range(max_iter):
+        d = np.linalg.norm(X_train[:, None] - centroids, axis=2)
+        labels = np.argmin(d, axis=1)
 
-    # Atualiza perfil do raster para uma banda só
-    profile.update(count=1, dtype=rasterio.uint8)
+        new_c = centroids.copy()
+        for k in range(n_clusters):
+            pts = X_train[labels == k]
+            new_c[k] = pts.mean(axis=0) if len(pts) else X_train[rnd.randint(len(X_train))]
+        if np.allclose(new_c, centroids, atol=tol):
+            break
+        centroids = new_c
 
-    # Salva a classificação
-    with rasterio.open(output_path, 'w', **profile) as dst:
-        dst.write(classified, 1)
+    # (D) --------- rotula TODOS os pixels ----------
+    d_full = np.linalg.norm(X_std[:, None] - centroids, axis=2)
+    lbl_full = np.argmin(d_full, axis=1)
+
+    # (E) --------- reordena pelo tamanho -----------
+    sizes = np.bincount(lbl_full, minlength=n_clusters)
+    order = np.argsort(-sizes)
+    relabel = np.empty_like(order)
+    relabel[order] = np.arange(n_clusters)
+    return relabel[lbl_full]
+
+def classify_map(src_path, dst_path, n_clusters=6, max_iter=30, seed=31415, 
+                 sample_size=50_000,      # << NOVO
+                 post_smooth=3,           # raio (pixels) p/ filtro majoritário
+                 nodata_value=65535):
+    """
+    Executa o K-Means no arquivo `src_path` e salva o mapa classificado.
+
+    Parâmetros
+    ----------
+    src_path : str  – GeoTIFF multibanda combinado
+    dst_path : str  – GeoTIFF de saída com 1 banda (classes)
+    n_clusters, max_iter, seed : idem SNAP
+    nodata_value : valor inteiro para áreas sem dados
+    """
+    # --- Lê dado inteiro em memória (mais próximo do SNAP)
+    with rasterio.open(src_path) as src:
+        arr = src.read()               # (bands, rows, cols)
+        meta = src.profile
+        nodata_in = src.nodata
+        rows, cols = meta['height'], meta['width']
+
+    # --- Cria máscara de áreas válidas
+    if nodata_in is None:
+        mask_valid = np.ones((rows, cols), dtype=bool)
+    else:
+        mask_valid = ~(np.any(arr == nodata_in, axis=0))
+
+    # --- Vetoriza pixels válidos
+    X = arr[:, mask_valid].T          # (n_valid, n_bands)
+
+    # aplica k-means
+    labels_valid = _snap_like_kmeans(X,
+                                     n_clusters=n_clusters,
+                                     max_iter=max_iter,
+                                     seed=seed,
+                                     sample_size=sample_size)
+
+    # reconstrução
+    class_img = np.full(rows*cols, nodata_value, np.uint16)
+    class_img[mask_valid.ravel()] = labels_valid
+    class_img = class_img.reshape(rows, cols)
+
+    # (F) --------- SUAVIZAÇÃO opcional -------------
+    if post_smooth:
+        def majority_filter(window):
+            vals = window.astype(np.int32)
+            vals = vals[vals != nodata_value]
+            return np.bincount(vals).argmax() if vals.size else nodata_value
+        class_img = generic_filter(class_img,
+                                   majority_filter,
+                                   size=post_smooth,
+                                   mode='nearest')
+
+    # --- Reconstrói imagem cheia
+    class_img = np.full(rows * cols, nodata_value, dtype=np.uint16)
+    class_img[mask_valid.ravel()] = labels_valid
+    class_img = class_img.reshape(rows, cols)
+
+    # --- Salva GeoTIFF
+    meta.update(count=1, dtype='uint16', nodata=nodata_value)
+    with rasterio.open(dst_path, 'w', **meta) as dst:
+        dst.write(class_img, 1)
+
+def clipRasterFromMask(tif_in, shp_mask, tif_out) :
+    # --- lê máscara como GeoJSON (WGS-84 ou mesma projeção do raster) ---
+    gdf = gpd.read_file(shp_mask)
+    geom = [g.__geo_interface__ for g in gdf.geometry]  # list-of-dicts esperado pelo rasterio
+
+    with rasterio.open(tif_in) as src:
+        recortado, _ = mask(src, geom, crop=True, nodata=src.nodata)
+
+        meta = src.meta.copy()
+        meta.update({
+            "height": recortado.shape[1],
+            "width":  recortado.shape[2],
+            "transform": _,
+        })
+
+        with rasterio.open(tif_out, "w", **meta) as dst:
+            dst.write(recortado)

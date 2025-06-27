@@ -18,7 +18,8 @@ if __name__ == '__main__':
     classifiedCombinedBands = resultsFolder + "/classifiedCombinedBands.tif"
 
     gis.combine_bands(band_paths, combinedBands)
-    gis.classify_kmeans(combinedBands, n_clusters=6, output_path=classifiedCombinedBands)
+    gis.classify_map(combinedBands, classifiedCombinedBands, n_clusters=6, max_iter=30, seed=31415)
+    gis.clipRasterFromMask(classifiedCombinedBands, "data/SHP_Bacia/bacia_regap_SirgasUTM23S.shp", resultsFolder + "/classifiedCombinedBands_clip.tif")
 
     X = np.array(bands).T  # (n_pixels, n_bandas)
 
@@ -57,4 +58,5 @@ if __name__ == '__main__':
     pcPaths = sorted(glob.glob(os.path.join(pcFolder, '*.tif')))
 
     gis.combine_bands(pcPaths, combinedPCs)
-    gis.classify_kmeans(combinedPCs, n_clusters=6, output_path=classifiedCombinedPCs)
+    gis.classify_map(combinedPCs, classifiedCombinedPCs,6)
+    gis.clipRasterFromMask(classifiedCombinedPCs, "data/SHP_Bacia/bacia_regap_SirgasUTM23S.shp", resultsFolder + "/classifiedCombinedPCs_clip.tif")
