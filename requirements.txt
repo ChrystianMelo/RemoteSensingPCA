@@ -1,7 +1,5 @@
 numpy
 rasterio
-ee
-geemap
-scikit-learn
 scipy
 geopandas
+matplotlib

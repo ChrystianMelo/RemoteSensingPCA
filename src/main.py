@@ -23,6 +23,7 @@ if __name__ == '__main__':
                      n_clusters=6, max_iter=30, seed=31415)
     gis.clipRasterFromMask(classifiedCombinedBands, "data/SHP_Bacia/bacia_regap_SirgasUTM23S.shp",
                            resultsFolder + "/classifiedCombinedBands_clip.tif")
+    gis.colorize_classes(classifiedCombinedBands_clip, resultsFolder + "/classifiedCombinedBandsFinal.png", resultsFolder + "/classifiedCombinedBandsFinal.tif")
 
     X = np.array(bands).T
 
@@ -61,3 +62,4 @@ if __name__ == '__main__':
     gis.classify_map(combinedPCs, classifiedCombinedPCs, 6)
     gis.clipRasterFromMask(classifiedCombinedPCs, "data/SHP_Bacia/bacia_regap_SirgasUTM23S.shp",
                            resultsFolder + "/classifiedCombinedPCs_clip.tif")
+    gis.colorize_classes(classifiedCombinedPCs_clip, resultsFolder + "/classifiedCombinedPCsFinal.png", resultsFolder + "/classifiedCombinedPCsFinal.tif")

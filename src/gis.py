@@ -6,6 +6,7 @@ from scipy.ndimage import generic_filter
 import rasterio
 from rasterio.mask import mask
 import geopandas as gpd
+from matplotlib import pyplot as plt
 
 
 def downloadBands(output_folder):
@@ -253,3 +254,61 @@ def clipRasterFromMask(tif_in, shp_mask, tif_out):
 
         with rasterio.open(tif_out, "w", **meta) as dst:
             dst.write(recortado)
+
+
+def colorize_classes(
+    src_path: str,
+    dst_png: str,
+    dst_tif: str,
+    classes: tuple[int, ...] = (0, 1, 2, 3, 4, 5),
+    # 6 cores RGB (0-255) – ajuste se quiser outras
+    palette: tuple[tuple[int, int, int], ...] = (
+        (215, 25, 28),   # vermelho
+        (253, 174, 97),  # laranja
+        (255, 255, 191),  # amarelo-claro
+        (171, 221, 164),  # verde-claro
+        (43, 131, 186),  # azul-médio
+        (111, 0, 142),   # roxo
+    )
+) -> None:
+    """
+    Lê um raster de classes (inteiros), aplica uma paleta de cores e:
+
+    • grava um PNG (se `dst_png` for fornecido);
+    • grava um GeoTIFF de 3 bandas (RGB) ou um TIFF de paleta
+      (se `dst_tif` for fornecido).
+
+    Necessita: rasterio, matplotlib, numpy.
+    """
+    if len(classes) != len(palette):
+        raise ValueError(
+            "`classes` e `palette` devem ter o mesmo comprimento.")
+
+    with rasterio.open(src_path) as src:
+        data = src.read(1)
+        profile = src.profile.copy()
+        nodata_in = profile.get("nodata", None)
+
+    rgb = np.zeros((3, *data.shape), dtype=np.uint8)
+
+    for class_id, (r, g, b) in zip(classes, palette):
+        mask = data == class_id
+        rgb[0][mask] = r
+        rgb[1][mask] = g
+        rgb[2][mask] = b
+
+    if dst_png:
+        plt.imsave(dst_png, np.transpose(rgb, (1, 2, 0)))
+
+    if dst_tif:
+        profile.update(
+            count=3,
+            dtype=rasterio.uint8,
+            photometric='RGB')
+        if nodata_in is not None and not (0 <= nodata_in <= 255):
+            profile.pop("nodata", None)
+        else:
+            profile["nodata"] = 0
+
+        with rasterio.open(dst_tif, "w", **profile) as dst:
+            dst.write(rgb)
