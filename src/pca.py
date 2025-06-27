@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def pca_svd(X, n_components=None, center=True, scale=False):
     """
     PCA via SVD (DVS).
@@ -29,25 +30,21 @@ def pca_svd(X, n_components=None, center=True, scale=False):
     if center:
         X = X - X.mean(axis=0, keepdims=True)
     if scale:
-        # Padronização opcional
         X = X / X.std(axis=0, ddof=1, keepdims=True)
 
-    # ---------- DVS condensada ----------
-    # Pelo Teorema 2 do módulo DVS existe A = U Σ Vᵀ com Σ diag(σ₁ … σ_r) :contentReference[oaicite:0]{index=0}
-    U, s, Vt = np.linalg.svd(X, full_matrices=False)   # U:(n,r)  Σ:diag(s)  Vt:(r,p)
+    U, s, Vt = np.linalg.svd(X, full_matrices=False)
 
-    # Autovalores da matriz de covariância S = (1/(n-1)) Xᵀ X
-    eigvals_full = (s**2) / (n - 1)                    # σᵢ² / (n-1)  (tutorial, pág. “Fase 2”) :contentReference[oaicite:1]{index=1}
+    eigvals_full = (s**2) / (n - 1)
 
-    # Seleção do número de componentes
     if n_components is None or n_components > len(s):
         n_components = len(s)
 
-    loadings = Vt[:n_components]                      # linhas de Vᵀ = autovetores
-    scores   = X @ loadings.T                        # projeção Y = X P (onde P = V_k)
+    loadings = Vt[:n_components]
+    scores = X @ loadings.T
 
-    eigvals  = eigvals_full[:n_components]
+    eigvals = eigvals_full[:n_components]
     return scores, loadings, eigvals
+
 
 def get_selected_pcs(Y_pca, eigvals, threshold=0.95, verbose=True):
     """
@@ -69,7 +66,8 @@ def get_selected_pcs(Y_pca, eigvals, threshold=0.95, verbose=True):
     num_pcs = np.searchsorted(cumulative, threshold) + 1
 
     if verbose:
-        print(f"Selecionando {num_pcs} PCs para atingir {threshold*100:.1f}% da variância explicada.")
+        print(
+            f"Selecionando {num_pcs} PCs para atingir {threshold*100:.1f}% da variância explicada.")
         for i, (e, c) in enumerate(zip(explained_ratios, cumulative), 1):
             status = "<-- usar" if i <= num_pcs else ""
             print(f"PC{i}: {e:.4f} explicada | Acumulada: {c:.4f} {status}")
