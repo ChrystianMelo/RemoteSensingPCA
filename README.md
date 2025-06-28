@@ -1,21 +1,27 @@
-# PCA via SVD para Realce de Feições em Imagens de Satélite 🚀
+# RemoteSensingPCA 📡🌎
 
-Este repositório demonstra **passo‑a‑passo** como aplicamos os conceitos vistos nas aulas de Álgebra Linear Numérica para construir uma pipeline de PCA do **zero**, sem bibliotecas de ML, a fim de realçar vegetação, água e áreas urbanas em cenas Landsat.
+**Processamento Numérico, PCA & Classificação K‑Means para Imagens Landsat 9**  
+Projeto desenvolvido na disciplina **ALN – Análise Linear Numérica** (2025/1) como estudo de caso de aplicação prática dos teoremas vistos em aula (Teoremas 1, 5 e 7 de Watkins) ao pipeline típico de Sensoriamento Remoto.
+
+O trabalho consiste em usar algebra linear para representar 
+<div align="center">
+<img src="data/SHP_Bacia/realImageClipped.png" width="70%" alt="Exemplo de classificação por PCA + K‑Means"/>
+</div>
 
 ---
 
-## 📚 Conexão direta com o conteúdo da disciplina
+## ✨ Principais Resultados
 
-| Etapa do projeto | Conceito teórico usado | Fonte da aula |
-|------------------|------------------------|---------------|
-| **Centralização** das bandas (X ← X − μ) | Necessidade de dados de média zero antes de calcular covariância | Tutorial *PCA Satelite*, Fase 2‑2 (a) |
-| **Matriz de covariância**  \(S = \frac{1}{N-1} X^{\mathsf T} X\) | Definição de correlação entre variáveis | Tutorial *PCA Satelite*, Fase 2‑2 (b) |
-| **Decomposição em Valores Singulares (DVS)**  \(X = U\,\Sigma\,V^{\mathsf T}\) | Teorema 1: existe a fatoração ortogonal com σ₁ ≥ σ₂ … | Módulo 3 – DVS |
-| Relação **autovalor ↔ valor singular**  \(\lambda_i = \sigma_i^2/(N-1)\) | Derivada de \(X^{\mathsf T} X = V\,\Sigma^2 V^{\mathsf T}\) | Tutorial *PCA Satelite*, Fase 2 |
-| **Componentes principais**  (loadings = linhas de \(V^{\mathsf T}\)) | Bases ortonormais que maximizam variância | Módulo 3 – DVS |
-| **Projeção**  \(Y = X P\) | Mudança de base para reduzir dimensionalidade | Tutorial *PCA Satelite*, Fase 2‑4 |
-| **Variância explicada**  (\(\sum \lambda_i\)) | Análise de contribuição de cada PC | Tutorial *PCA Satelite*, Fase 3‑3 |
+| Etapa | Saída gerada | Caminho |
+|-------|--------------|---------|
+| PCA (4 PCs) | `combinedPCs.tif` | `data/Results/` |
+| Classificação K‑Means (6 clusters) | `classifiedCombinedPCs.tif` | `data/Results/` |
+| Recorte por máscara (.shp) | `classifiedCombinedPCs_clip.tif` | `data/Results/` |
+| Render colorido | `classifiedCombinedPCsFinal.png` | `data/Results/` |
 
+<div align="center">
+<img src="resultComparsion.png" width="70%" alt="Exemplo de classificação por PCA + K‑Means"/>
+</div>
 ---
 
 ## 🎯 Objetivos
@@ -32,15 +38,18 @@ A implementação está baseada em conceitos como:
 - Autovalores e autovetores (Capítulo 6 - Watkins).
 - Espaços invariantes e subespaços associados à matriz de covariância.
 
-## 🛰 Dados Utilizados
+| Conceito em aula | Implementação no código | Onde consultar |
+|------------------|-------------------------|----------------|
+| **Centralização** \(X ← X − μ\) | `pca.pca_svd(center=True)` | Tutorial PCA Satélite §2‑a |
+| **Covariância** \(S = \frac{1}{N-1} X^{T} X\) | `pca.pca_svd` (linha 61) | Tutorial PCA Satélite §2‑b |
+| **Decomposição em Valores Singulares** | `np.linalg.svd` (linha 77) | Aula ALN, slides DVS |
+| **Relação σ² ↔ λ** | Pós‑processamento em `pca.pca_svd` | Watkins, Teoremas 1 & 5 |
+| **Projeção em sub‑espaço PC** | `scores = X_c @ V[:,:k]` | Tutorial §3 |
 
-- Imagens Landsat 9.
-- Bandas espectrais utilizadas: Bandas de 1 a 9 (exceto a 8)
-
-## 🛠 Tecnologias
+## 🛠 Tecnologias e Dados Utilizados
 
 - Python 3
-- Google Earth Engine 
+- [Google Earth Engine] Imagens Landsat 9 (Bandas espectrais utilizadas: 1 a 9 (exceto a 8)
 
 ## 📊 Etapas
 
@@ -49,6 +58,29 @@ A implementação está baseada em conceitos como:
 3. Cálculo dos autovalores e autovetores
 4. Projeção dos dados na nova base
 5. Visualização dos componentes principais
+
+## 🗂️ Estrutura do repositório
+
+```text
+.
+├── config.bat                 # Atalho Windows: ativa venv + executa workflow
+├── L9_L1_Ibirite_2022.js      # Script GEE para baixar bandas Landsat 9 L1
+├── requirements.txt
+├── src
+│   ├── gis.py                 # Utilitários GIS (raster I/O, K‑Means, clipping…)
+│   ├── pca.py                 # Implementação **própria** de PCA via SVD
+│   └── main.py                # Orquestra o pipeline completo
+└── data
+    ├── Landsat Bands/         # Bandas GeoTIFF originais
+    ├── SHP_Bacia/             # Máscara shapefile de recorte
+```
+
+## ⚙️ Instalação rápida
+> Recomendado: **Python 3.10.x**
+- Clone o projeto 
+```git clone https://github.com/ChrystianMelo/RemoteSensingPCA.git```
+- Para configurar o projeto basta executar o ```config.bat```
+- Para executar o projeto basta executar o ```run.bat```
 
 ## 📖 Referências
 
