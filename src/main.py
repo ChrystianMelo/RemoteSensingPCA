@@ -6,7 +6,7 @@ import glob
 import numpy as np
 
 if __name__ == '__main__':
-    bandsFolder = "data/Landsat Bands"
+    bandsFolder = "data/LandsatBands"
     bands = gis.getBands(bandsFolder)
 
     band_paths = sorted(glob.glob(os.path.join(bandsFolder, '*.tif')))
