@@ -1,9 +1,13 @@
 # RemoteSensingPCA 📡🌎
 
+---
+[📓 **Link para notebook interativo utilizado na apresentação**](https://drive.google.com/drive/folders/1BRmUqiSY7yHaFcD1vxPD4OaNHk4dtet-?usp=sharing)
+---
 **Processamento Numérico, PCA & Classificação K‑Means para Imagens Landsat 9**  
 Projeto desenvolvido na disciplina **ALN – Algebra Linear Numérica** (2025/1) como estudo de caso de aplicação prática dos teoremas vistos em aula (Teoremas 1, 5 e 7 de Watkins) ao pipeline típico de Sensoriamento Remoto.
 
-O trabalho consiste em usar algebra linear para representar 
+O objetivo é mostrar como operações matriciais transformam as bandas brutas do Landsat-9 em informações geoespaciais úteis, produzindo mapas temáticos claros e interpretáveis.
+
 <div align="center">
 <img src="data/SHP_Bacia/realImageClipped.png" width="70%" alt="Exemplo de classificação por PCA + K‑Means"/>
 </div>
@@ -18,6 +22,9 @@ O trabalho consiste em usar algebra linear para representar
 | Classificação K‑Means (6 clusters) | `classifiedCombinedPCs.tif` | `data/Results/` |
 | Recorte por máscara (.shp) | `classifiedCombinedPCs_clip.tif` | `data/Results/` |
 | Render colorido | `classifiedCombinedPCsFinal.png` | `data/Results/` |
+
+
+A comparação logo abaixo confronta as oito bandas originais com as quatro componentes principais extraídas. Note como o PCA concentra a variância espectral, suaviza ruídos e revela padrões que se tornam mais nítidos na classificação K-Means subsequente, reduzindo a granularidade e destacando áreas urbanas e vegetação de forma mais clara.
 
 <div align="center">
 <img src="resultComparsion.png" width="70%" alt="Exemplo de classificação por PCA + K‑Means"/>
