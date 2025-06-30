@@ -1,7 +1,7 @@
 # RemoteSensingPCA 📡🌎
 
 **Processamento Numérico, PCA & Classificação K‑Means para Imagens Landsat 9**  
-Projeto desenvolvido na disciplina **ALN – Análise Linear Numérica** (2025/1) como estudo de caso de aplicação prática dos teoremas vistos em aula (Teoremas 1, 5 e 7 de Watkins) ao pipeline típico de Sensoriamento Remoto.
+Projeto desenvolvido na disciplina **ALN – Algebra Linear Numérica** (2025/1) como estudo de caso de aplicação prática dos teoremas vistos em aula (Teoremas 1, 5 e 7 de Watkins) ao pipeline típico de Sensoriamento Remoto.
 
 O trabalho consiste em usar algebra linear para representar 
 <div align="center">
