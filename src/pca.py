@@ -1,6 +1,42 @@
 import numpy as np
 
 
+def svd_manual(X, full_matrices=False, compute_uv=True):
+    """
+    Pequena implementação de SVD via autovalores de X.T * X.
+    Retorna U, s, Vt tal como np.linalg.svd (reduced).
+    """
+    X = np.asarray(X, dtype=float)
+
+    # 1. Produto cruzado
+    C = X.T @ X                                   # (p × p)
+
+    # 2. Autovalores (simétrica) – mais estável que eig geral
+    eigvals, V = np.linalg.eigh(C)                # ascendente
+    idx = eigvals.argsort()[::-1]                 # ↓
+    eigvals, V = eigvals[idx], V[:, idx]
+
+    # 3. Valores singulares
+    s = np.sqrt(np.clip(eigvals, 0, None))        # evita negativos
+
+    if not compute_uv:                            # só s
+        return s
+
+    # 4. U = X V Σ^{-1}
+    nonzero = s > 1e-12                           # tolerância
+    U = np.zeros((X.shape[0], V.shape[1]))
+    U[:, nonzero] = (X @ V[:, nonzero]) / s[nonzero]
+
+    # 5. Corte para forma reduzida, se desejado
+    if not full_matrices:
+        r = np.count_nonzero(nonzero)
+        U = U[:, :r]
+        V = V[:, :r]
+        s = s[:r]
+
+    Vt = V.T
+    return U, s, Vt
+
 def pca_svd(X, n_components=None, center=True, scale=False):
     """
     PCA via SVD (DVS).
@@ -32,7 +68,7 @@ def pca_svd(X, n_components=None, center=True, scale=False):
     if scale:
         X = X / X.std(axis=0, ddof=1, keepdims=True)
 
-    U, s, Vt = np.linalg.svd(X, full_matrices=False)
+    U, s, Vt = svd_manual(X, full_matrices=False)
 
     eigvals_full = (s**2) / (n - 1)
 
@@ -44,7 +80,6 @@ def pca_svd(X, n_components=None, center=True, scale=False):
 
     eigvals = eigvals_full[:n_components]
     return scores, loadings, eigvals
-
 
 def get_selected_pcs(Y_pca, eigvals, threshold=0.95, verbose=True):
     """
