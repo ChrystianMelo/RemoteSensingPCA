@@ -47,10 +47,10 @@ A implementação está baseada em conceitos como:
 
 | Conceito em aula | Implementação no código | Onde consultar |
 |------------------|-------------------------|----------------|
-| **Centralização** $X \leftarrow X - \mu$ | `pca.pca_svd(center=True)` | Tutorial PCA Satélite §2‑a |
-| **Covariância** $S = \frac{1}{N-1} X^{T} X$. | `pca.pca_svd` (linha 61) | Tutorial PCA Satélite §2‑b |
+| **Centralização:** $X \leftarrow X - \mu$ | `pca.pca_svd(center=True)` | Tutorial PCA Satélite §2‑a |
+| **Covariância:** $S = \frac{1}{N-1} X^{T} X$ | `pca.pca_svd` (linha 61) | Tutorial PCA Satélite §2‑b |
 | **Decomposição em Valores Singulares** | `np.linalg.svd` (linha 77) | Aula ALN, slides DVS |
-| **Relação $ \sigma^2 \leftrightarrow \lambda $.** | Pós‑processamento em `pca.pca_svd` | Watkins, Teoremas 1 & 5 |
+| **Relação** $\sigma^2 \leftrightarrow \lambda $ | Pós‑processamento em `pca.pca_svd` | Watkins, Teoremas 1 & 5 |
 | **Projeção em sub‑espaço PC** | `scores = X_c @ V[:,:k]` | Tutorial §3 |
 
 ## 🛠 Tecnologias e Dados Utilizados
