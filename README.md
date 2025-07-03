@@ -47,10 +47,10 @@ A implementação está baseada em conceitos como:
 
 | Conceito em aula | Implementação no código | Onde consultar |
 |------------------|-------------------------|----------------|
-| **Centralização** \(X ← X − μ\) | `pca.pca_svd(center=True)` | Tutorial PCA Satélite §2‑a |
-| **Covariância** \(S = \frac{1}{N-1} X^{T} X\) | `pca.pca_svd` (linha 61) | Tutorial PCA Satélite §2‑b |
+| **Centralização** $X \leftarrow X - \mu$ | `pca.pca_svd(center=True)` | Tutorial PCA Satélite §2‑a |
+| **Covariância** $S = \frac{1}{N-1} X^{T} X$. | `pca.pca_svd` (linha 61) | Tutorial PCA Satélite §2‑b |
 | **Decomposição em Valores Singulares** | `np.linalg.svd` (linha 77) | Aula ALN, slides DVS |
-| **Relação σ² ↔ λ** | Pós‑processamento em `pca.pca_svd` | Watkins, Teoremas 1 & 5 |
+| **Relação $ \sigma^2 \leftrightarrow \lambda $.** | Pós‑processamento em `pca.pca_svd` | Watkins, Teoremas 1 & 5 |
 | **Projeção em sub‑espaço PC** | `scores = X_c @ V[:,:k]` | Tutorial §3 |
 
 ## 🛠 Tecnologias e Dados Utilizados
@@ -70,27 +70,29 @@ A implementação está baseada em conceitos como:
 
 ```text
 .
-├── L9_L1_Ibirite_2022.js      # Script GEE para baixar bandas Landsat 9 L1
-├── config.bat                 # Atalho Windows: ativa venv + executa workflow
-├── config.sh                  # Atalho Linux: ativa venv + executa workflow
-├── requirements.txt
+└── data
+    ├── Landsat Bands/         # Bandas GeoTIFF originais
+    ├── SHP_Bacia/             # Máscara shapefile de recorte
+    |── PCA Components/        # .tif utilizados para PCA
+    |── Results/               # Resultados finais do monitoramento
 ├── src
 │   ├── gis.py                 # Utilitários GIS (raster I/O, K‑Means, clipping…)
 │   ├── pca.py                 # Implementação **própria** de PCA via SVD
 │   └── main.py                # Orquestra o pipeline completo
-└── data
-    ├── Landsat Bands/         # Bandas GeoTIFF originais
-    ├── SHP_Bacia/             # Máscara shapefile de recorte
-├── run.bat                    # Script para rodar o projeto no Windows
-├── run.sh                     # Script para rodar o projeto no Linux
+├── L9_L1_Ibirite_2022.js      # Script GEE para baixar bandas Landsat 9 L1
+├── config.bat                 # Atalho Windows: ativa venv + executa workflow
+├── config.sh                  # Atalho Linux: ativa venv + executa workflow
+├── requirements.txt
+├── run.bat                    # Executável para rodar o projeto no Windows
+├── run.sh                     # Executável para rodar o projeto no Linux
 ```
 
 ## ⚙️ Instalação rápida
 > Recomendado: **Python 3.10.x**
 - Clone o projeto 
 ```git clone https://github.com/ChrystianMelo/RemoteSensingPCA.git```
-- Para configurar o projeto basta executar o ```config.bat```
-- Para executar o projeto basta executar o ```run.bat```
+- Para configurar o projeto basta executar o ```config.bat```/```config.sh```
+- Para executar o projeto basta executar o ```run.bat```/```run.sh```
 
 ## 📖 Referências
 
