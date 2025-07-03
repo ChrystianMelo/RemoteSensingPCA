@@ -70,8 +70,9 @@ A implementação está baseada em conceitos como:
 
 ```text
 .
-├── config.bat                 # Atalho Windows: ativa venv + executa workflow
 ├── L9_L1_Ibirite_2022.js      # Script GEE para baixar bandas Landsat 9 L1
+├── config.bat                 # Atalho Windows: ativa venv + executa workflow
+├── config.sh                  # Atalho Linux: ativa venv + executa workflow
 ├── requirements.txt
 ├── src
 │   ├── gis.py                 # Utilitários GIS (raster I/O, K‑Means, clipping…)
@@ -80,6 +81,8 @@ A implementação está baseada em conceitos como:
 └── data
     ├── Landsat Bands/         # Bandas GeoTIFF originais
     ├── SHP_Bacia/             # Máscara shapefile de recorte
+├── run.bat                    # Script para rodar o projeto no Windows
+├── run.sh                     # Script para rodar o projeto no Linux
 ```
 
 ## ⚙️ Instalação rápida
